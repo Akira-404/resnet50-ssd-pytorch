@@ -5,9 +5,9 @@ import torch
 
 import transforms
 from my_dataset import VOCDataSet
-from src import SSD300, Backbone
+from src.ssd_model import SSD300, Backbone
 import train_utils.train_eval_utils as utils
-from train_utils import get_coco_api_from_dataset
+from train_utils.coco_utils import get_coco_api_from_dataset
 
 
 def create_model(num_classes=21):
@@ -17,7 +17,7 @@ def create_model(num_classes=21):
     model = SSD300(backbone=backbone, num_classes=num_classes)
 
     # https://ngc.nvidia.com/catalog/models -> search ssd -> download FP32
-    pre_ssd_path = "./src/nvidia_ssdpyt_fp32.pt"
+    pre_ssd_path = "./src/nvidia_ssdpyt_fp32_190826.pt"
     if os.path.exists(pre_ssd_path) is False:
         raise FileNotFoundError("nvidia_ssdpyt_fp32.pt not find in {}".format(pre_ssd_path))
     pre_model_dict = torch.load(pre_ssd_path, map_location='cpu')
@@ -47,7 +47,7 @@ def main(parser_data):
         os.mkdir("save_weights")
 
     results_file = "results{}.txt".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-
+    print(f'results_file:{results_file}')
     data_transform = {
         "train": transforms.Compose([transforms.SSDCropping(),
                                      transforms.Resize(),
@@ -62,12 +62,14 @@ def main(parser_data):
     }
 
     VOC_root = parser_data.data_path
+    print(f'VOC ROOT:{VOC_root}')
     # check voc root
-    if os.path.exists(os.path.join(VOC_root, "VOCdevkit")) is False:
+    if os.path.exists(os.path.join(VOC_root, "HardHatWorker_voc")) is False:
         raise FileNotFoundError("VOCdevkit dose not in path:'{}'.".format(VOC_root))
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Main -> train.txt
-    train_dataset = VOCDataSet(VOC_root, "2012", data_transform['train'], train_set='train.txt')
+    train_dataset = VOCDataSet(VOC_root, "2007", data_transform['train'], train_set='train.txt')
+
     # 注意训练时，batch_size必须大于1
     batch_size = parser_data.batch_size
     assert batch_size > 1, "batch size must be greater than 1"
@@ -83,24 +85,21 @@ def main(parser_data):
                                                     drop_last=drop_last)
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Main -> val.txt
-    val_dataset = VOCDataSet(VOC_root, "2012", data_transform['val'], train_set='val.txt')
+    val_dataset = VOCDataSet(VOC_root, "2007", data_transform['val'], train_set='val.txt')
     val_data_loader = torch.utils.data.DataLoader(val_dataset,
                                                   batch_size=batch_size,
                                                   shuffle=False,
                                                   num_workers=nw,
                                                   collate_fn=train_dataset.collate_fn)
-
-    model = create_model(num_classes=args.num_classes+1)
+    print(f'create model begin')
+    model = create_model(num_classes=args.num_classes + 1)
     model.to(device)
-
+    print(f'create model finish')
     # define optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.0005,
-                                momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.0005,momentum=0.9, weight_decay=0.0005)
     # learning rate scheduler
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                                   step_size=5,
-                                                   gamma=0.3)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,step_size=5,gamma=0.3)
 
     # 如果指定了上次训练保存的权重文件地址，则接着上次结果接着训练
     if parser_data.resume != "":
@@ -118,9 +117,12 @@ def main(parser_data):
     # 提前加载验证集数据，以免每次验证时都要重新加载一次数据，节省时间
     val_data = get_coco_api_from_dataset(val_data_loader.dataset)
     for epoch in range(parser_data.start_epoch, parser_data.epochs):
-        mean_loss, lr = utils.train_one_epoch(model=model, optimizer=optimizer,
+        print(f'epoch:{epoch}')
+        mean_loss, lr = utils.train_one_epoch(model=model,
+                                              optimizer=optimizer,
                                               data_loader=train_data_loader,
-                                              device=device, epoch=epoch,
+                                              device=device,
+                                              epoch=epoch,
                                               print_freq=50)
         train_loss.append(mean_loss.item())
         learning_rate.append(lr)
@@ -166,26 +168,31 @@ def main(parser_data):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__)
 
     # 训练设备类型
-    parser.add_argument('--device', default='cuda:0', help='device')
+    parser.add_argument('--device', default='cuda:0',
+                        help='device')
     # 检测的目标类别个数，不包括背景
-    parser.add_argument('--num_classes', default=20, type=int, help='num_classes')
+    parser.add_argument('--num_classes', default=2, type=int,
+                        help='num_classes')
     # 训练数据集的根目录(VOCdevkit)
-    parser.add_argument('--data-path', default='./', help='dataset')
+    parser.add_argument('--data-path', default='/home/cv/AI_Data',
+                        help='dataset')
     # 文件保存地址
-    parser.add_argument('--output-dir', default='./save_weights', help='path where to save')
+    parser.add_argument('--output-dir', default='./save_weights',
+                        help='path where to save')
     # 若需要接着上次训练，则指定上次训练保存权重文件地址
-    parser.add_argument('--resume', default='', type=str, help='resume from checkpoint')
+    parser.add_argument('--resume', default='', type=str,
+                        help='resume from checkpoint')
     # 指定接着从哪个epoch数开始训练
-    parser.add_argument('--start_epoch', default=0, type=int, help='start epoch')
+    parser.add_argument('--start_epoch', default=0, type=int,
+                        help='start epoch')
     # 训练的总epoch数
-    parser.add_argument('--epochs', default=15, type=int, metavar='N',
+    parser.add_argument('--epochs', default=120, type=int, metavar='N',
                         help='number of total epochs to run')
     # 训练的batch size
-    parser.add_argument('--batch_size', default=4, type=int, metavar='N',
+    parser.add_argument('--batch_size', default=16, type=int, metavar='N',
                         help='batch size when training.')
 
     args = parser.parse_args()

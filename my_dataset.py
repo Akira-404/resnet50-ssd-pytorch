@@ -11,7 +11,7 @@ class VOCDataSet(Dataset):
 
     def __init__(self, voc_root, year="2012", transforms=None, train_set='train.txt'):
         assert year in ["2007", "2012"], "year must be in ['2007', '2012']"
-        self.root = os.path.join(voc_root, "VOCdevkit", f"VOC{year}")
+        self.root = os.path.join(voc_root, "HardHatWorker_voc", f"VOC{year}")
         self.img_root = os.path.join(self.root, "JPEGImages")
         self.annotations_root = os.path.join(self.root, "Annotations")
 
@@ -45,8 +45,8 @@ class VOCDataSet(Dataset):
         height_width = [data_height, data_width]
         img_path = os.path.join(self.img_root, data["filename"])
         image = Image.open(img_path)
-        if image.format != "JPEG":
-            raise ValueError("Image '{}' format not JPEG".format(img_path))
+        # if image.format != "JPEG":
+        #         raise ValueError("Image '{}' format not JPEG".format(img_path))
 
         assert "object" in data, "{} lack of object information.".format(xml_path)
         boxes = []

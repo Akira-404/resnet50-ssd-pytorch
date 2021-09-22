@@ -50,7 +50,7 @@ import numpy as np
 def box_area(boxes):
     """
     Computes the area of a set of bounding boxes, which are specified by its
-    (x1, y1, x2, y2) coordinates.
+    (x1, y1, x2, y2) coordinate.
     Arguments:
         boxes (Tensor[N, 4]): boxes for which the area will be computed. They
             are expected to be in (x1, y1, x2, y2) format

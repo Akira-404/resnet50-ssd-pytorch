@@ -4,12 +4,12 @@ import time
 
 import torch
 
-from train_utils import get_coco_api_from_dataset, CocoEvaluator
+from train_utils.coco_utils import get_coco_api_from_dataset
+from train_utils.coco_eval import CocoEvaluator
 import train_utils.distributed_utils as utils
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch,
-                    print_freq=50, warmup=False):
+def train_one_epoch(model, optimizer, data_loader, device, epoch,print_freq=50, warmup=False):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -74,7 +74,6 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch,
 
 @torch.no_grad()
 def evaluate(model, data_loader, device, data_set=None):
-
     cpu_device = torch.device("cpu")
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
