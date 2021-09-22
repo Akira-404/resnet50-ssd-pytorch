@@ -1,0 +1,6 @@
+
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/modules.xml
+.idea/resnet50-ssd.iml
+src/nvidia_ssdpyt_fp32_190826.pt
+src/res50+ssd.zip
