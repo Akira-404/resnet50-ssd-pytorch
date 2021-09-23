@@ -11,9 +11,10 @@ from tqdm import tqdm
 import numpy as np
 
 import transforms
-from src import Backbone, SSD300
+from src.ssd_model import Backbone, SSD300
 from my_dataset import VOCDataSet
-from train_utils import get_coco_api_from_dataset, CocoEvaluator
+from train_utils.coco_utils import get_coco_api_from_dataset
+from train_utils.coco_eval import CocoEvaluator
 
 
 def summarize(self, catId=None):

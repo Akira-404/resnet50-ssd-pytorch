@@ -1,3 +1,4 @@
+import PIL.Image
 from torch.utils.data import Dataset
 import os
 import torch
@@ -11,7 +12,8 @@ class VOCDataSet(Dataset):
 
     def __init__(self, voc_root, year="2012", transforms=None, train_set='train.txt'):
         assert year in ["2007", "2012"], "year must be in ['2007', '2012']"
-        self.root = os.path.join(voc_root, "HardHatWorker_voc", f"VOC{year}")
+
+        self.root = os.path.join(voc_root, "VOCdevkit", f"VOC{year}")
         self.img_root = os.path.join(self.root, "JPEGImages")
         self.annotations_root = os.path.join(self.root, "Annotations")
 
@@ -43,8 +45,12 @@ class VOCDataSet(Dataset):
         data_height = int(data["size"]["height"])
         data_width = int(data["size"]["width"])
         height_width = [data_height, data_width]
-        img_path = os.path.join(self.img_root, data["filename"])
+
+        # img_path = os.path.join(self.img_root, data["filename"])
+
+        img_path = xml_path.replace('Annotations', 'JPEGImages').replace('xml', 'jpg')
         image = Image.open(img_path)
+
         # if image.format != "JPEG":
         #         raise ValueError("Image '{}' format not JPEG".format(img_path))
 

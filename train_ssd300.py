@@ -11,6 +11,7 @@ from train_utils.coco_utils import get_coco_api_from_dataset
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+
 def create_model(num_classes=21):
     # https://download.pytorch.org/models/resnet50-19c8e357.pth
     # pre_train_path = "./src/resnet50.pth"
@@ -65,7 +66,7 @@ def main(parser_data):
     VOC_root = parser_data.data_path
     print(f'VOC ROOT:{VOC_root}')
     # check voc root
-    if os.path.exists(os.path.join(VOC_root, "HardHatWorker_voc")) is False:
+    if os.path.exists(os.path.join(VOC_root, "VOCdevkit")) is False:
         raise FileNotFoundError("VOCdevkit dose not in path:'{}'.".format(VOC_root))
 
     # VOCdevkit -> VOC2012 -> ImageSets -> Main -> train.txt
@@ -74,6 +75,7 @@ def main(parser_data):
     # 注意训练时，batch_size必须大于1
     batch_size = parser_data.batch_size
     assert batch_size > 1, "batch size must be greater than 1"
+
     # 防止最后一个batch_size=1，如果最后一个batch_size=1就舍去
     drop_last = True if len(train_dataset) % batch_size == 1 else False
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])  # number of workers
@@ -96,11 +98,12 @@ def main(parser_data):
     model = create_model(num_classes=args.num_classes + 1)
     model.to(device)
     print(f'create model finish')
+
     # define optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.0005,momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.0005, momentum=0.9, weight_decay=0.0005)
     # learning rate scheduler
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,step_size=5,gamma=0.3)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.3)
 
     # 如果指定了上次训练保存的权重文件地址，则接着上次结果接着训练
     if parser_data.resume != "":
@@ -118,7 +121,6 @@ def main(parser_data):
     # 提前加载验证集数据，以免每次验证时都要重新加载一次数据，节省时间
     val_data = get_coco_api_from_dataset(val_data_loader.dataset)
     for epoch in range(parser_data.start_epoch, parser_data.epochs):
-        print(f'epoch:{epoch}')
         mean_loss, lr = utils.train_one_epoch(model=model,
                                               optimizer=optimizer,
                                               data_loader=train_data_loader,

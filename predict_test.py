@@ -7,8 +7,9 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 import transforms
-from src import SSD300, Backbone
+from src.ssd_model import SSD300, Backbone
 from draw_box_utils import draw_box
+import torch.nn as nn
 
 
 def create_model(num_classes):
@@ -34,8 +35,9 @@ def main():
     model = create_model(num_classes=num_classes)
 
     # load train weights
-    train_weights = "./save_weights/ssd300-14.pth"
-    model.load_state_dict(torch.load(train_weights, map_location=device)['model'])
+    train_weights = "./save_weights/ssd300-119.pth"
+    model = nn.DataParallel(model)
+    model.load_state_dict(torch.load(train_weights, map_location=device)['model'],False)
     model.to(device)
 
     # read class_indict

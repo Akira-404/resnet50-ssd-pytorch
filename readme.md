@@ -3,7 +3,7 @@
 ## 环境配置：
 
 ```
-numpy==1.17.0
+numpy==1.17.0+
 matplotlib
 tqdm==4.42.1
 pycocotools

@@ -9,7 +9,7 @@ from train_utils.coco_eval import CocoEvaluator
 import train_utils.distributed_utils as utils
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch,print_freq=50, warmup=False):
+def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=50, warmup=False):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
