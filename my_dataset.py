@@ -22,7 +22,7 @@ class VOCDataSet(Dataset):
                              for line in read.readlines() if len(line.strip()) > 0]
 
         # read class_indict
-        json_file = "./pascal_voc_classes.json"
+        json_file = "my_voc_classes.json"
         assert os.path.exists(json_file), "{} file not exist.".format(json_file)
         json_file = open(json_file, 'r')
         self.class_dict = json.load(json_file)
@@ -206,7 +206,7 @@ class VOCDataSet(Dataset):
 # # read class_indict
 # category_index = {}
 # try:
-#     json_file = open('./pascal_voc_classes.json', 'r')
+#     json_file = open('./my_voc_classes.json', 'r')
 #     class_dict = json.load(json_file)
 #     category_index = {v: k for k, v in class_dict.items()}
 # except Exception as e:

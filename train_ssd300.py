@@ -9,6 +9,7 @@ from src.ssd_model import SSD300, Backbone
 import train_utils.train_eval_utils as utils
 from train_utils.coco_utils import get_coco_api_from_dataset
 
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 def create_model(num_classes=21):
     # https://download.pytorch.org/models/resnet50-19c8e357.pth

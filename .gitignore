@@ -4,3 +4,12 @@ src/nvidia_ssdpyt_fp32_190826.pt
 src/res50+ssd.zip
 __pycache__/
 save_weights/
+
+mAP.png
+loss_and_lr20210922-203750.png
+my_test_voc_classes.json
+record_mAP.txt
+results20210922-165041.txt
+results20210922-180749.txt
+results20210922-162151.txt
+results20210922-163639.txt
