@@ -201,6 +201,60 @@ class VOCDataSet(Dataset):
 
         return images, targets
 
+
+if __name__ == '__main__':
+    import transforms
+    from PIL import Image
+    import random
+    import matplotlib.pyplot as plt
+    from draw_box_utils import draw_box
+    import torchvision.transforms as ts
+
+    category_index = {}
+    try:
+        json_file = open('./my_voc_classes.json', 'r')
+        class_dict = json.load(json_file)
+        category_index = {v: k for k, v in class_dict.items()}
+    except Exception as e:
+        print(e)
+        exit(-1)
+    data_transform = {
+        "train": transforms.Compose([transforms.ToTensor(),
+                                     transforms.RandomHorizontalFlip(0.5)]),
+        "val": transforms.Compose([transforms.ToTensor()])
+    }
+    # data_transform = {
+    #     "train": transforms.Compose([transforms.SSDCropping(),
+    #                                  transforms.Resize(),
+    #                                  transforms.ColorJitter(),
+    #                                  transforms.ToTensor(),
+    #                                  transforms.RandomHorizontalFlip(),
+    #                                  transforms.Normalization(),
+    #                                  transforms.AssignGTtoDefaultBox()]),
+    #     "val": transforms.Compose([transforms.Resize(),
+    #                                transforms.ToTensor(),
+    #                                transforms.Normalization()])
+    # }
+    train_dataset = VOCDataSet(
+        '/home/cv/AI_Data/hat_worker_voc/',
+        '2007',
+        data_transform['train'],
+        train_set='train.txt')
+
+    print(len(train_dataset))
+    for index in random.sample(range(0, len(train_dataset)), k=5):
+        img, target = train_dataset[index]
+        img = ts.ToPILImage()(img)
+        draw_box(img,
+                 target["boxes"].numpy(),
+                 target["labels"].numpy(),
+                 [1 for i in range(len(target["labels"].numpy()))],
+                 category_index,
+                 thresh=0.5,
+                 line_thickness=5)
+        plt.imshow(img)
+        plt.show()
+
 # import transforms
 # from draw_box_utils import draw_box
 # from PIL import Image

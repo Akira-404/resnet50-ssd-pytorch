@@ -180,13 +180,13 @@ if __name__ == '__main__':
     parser.add_argument('--num_classes', default=2, type=int,
                         help='num_classes')
     # 训练数据集的根目录(VOCdevkit)
-    parser.add_argument('--data-path', default='/home/cv/AI_Data',
+    parser.add_argument('--data-path', default='/home/cv/AI_Data/hat_worker',
                         help='dataset')
     # 文件保存地址
     parser.add_argument('--output-dir', default='./save_weights',
                         help='path where to save')
     # 若需要接着上次训练，则指定上次训练保存权重文件地址
-    parser.add_argument('--resume', default='', type=str,
+    parser.add_argument('--resume', default='./save_weights/ssd300-16.pth', type=str,
                         help='resume from checkpoint')
     # 指定接着从哪个epoch数开始训练
     parser.add_argument('--start_epoch', default=0, type=int,

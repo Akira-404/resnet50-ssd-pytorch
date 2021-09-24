@@ -2,6 +2,8 @@ import os
 import json
 from lxml import etree
 from PIL import Image
+import random
+import cv2
 
 
 def parse_xml_to_dict(xml):
@@ -114,13 +116,42 @@ def check_image_mode(path: str, mode: str = 'RGB', convert: bool = False):
             img.save(image_path, quality=95)
 
 
+def show_label_image(path: str):
+    assert os.path.exists(path) is True, f'{path} is error'
+    image_file = os.path.join(path, 'JPEGImages')
+    anno_file = os.path.join(path, 'Annotations')
+    assert os.path.exists(anno_file) is True, f'{anno_file} is error'
+    assert os.path.exists(image_file) is True, f'{image_file} is error'
+
+    for anno in os.listdir(anno_file):
+        xml_path = os.path.join(anno_file, anno)
+        image_path = xml_path.replace('Annotations', 'JPEGImages').replace('xml', 'jpg')
+        with open(xml_path) as f:
+            xml_str = f.read()
+        xml = etree.fromstring(xml_str)
+        data = parse_xml_to_dict(xml)['annotation']
+
+        im = cv2.imread(image_path)
+        for obj in data['object']:
+            name = obj['name']
+            xmin = int(obj["bndbox"]["xmin"])
+            xmax = int(obj["bndbox"]["xmax"])
+            ymin = int(obj["bndbox"]["ymin"])
+            ymax = int(obj["bndbox"]["ymax"])
+            cv2.rectangle(im, (xmin, ymin), (xmax, ymax), (255, 0, 0), 1)
+            cv2.putText(im, name, (xmin, ymin), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+        cv2.imshow('image', im)
+        cv2.waitKey(0)
+
+
 if __name__ == '__main__':
-    voc_file = '/home/cv/AI_Data/VOCdevkit/VOC2007'
+    voc_file = '/home/cv/AI_Data/hat_worker_voc/VOCdevkit/VOC2007'
     # voc_file = '/home/cv/AI_Data/HardHatWorker_voc/VOC2007'
     save_file = 'my_voc_classes.json'
 
-    # classes_dict = create_voc_label_classes_json(voc_file, save_file)
+    classes_dict = create_voc_label_classes_json(voc_file, save_file)
     # print(f'classes_dict:{classes_dict}')
-    check_voc_xml_image(voc_file)
+    # check_voc_xml_image(voc_file)
 
     # check_image_mode(voc_file)
+    show_label_image(voc_file)

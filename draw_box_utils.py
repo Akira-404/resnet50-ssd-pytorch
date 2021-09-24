@@ -1,4 +1,5 @@
 import collections
+from PIL import Image
 import PIL.ImageDraw as ImageDraw
 import PIL.ImageFont as ImageFont
 import numpy as np
@@ -30,6 +31,7 @@ STANDARD_COLORS = [
 ]
 
 
+# 过滤低于threshold的box
 def filter_low_thresh(boxes, scores, classes, category_index, thresh, box_to_display_str_map, box_to_color_map):
     for i in range(boxes.shape[0]):
         if scores[i] > thresh:
@@ -41,8 +43,7 @@ def filter_low_thresh(boxes, scores, classes, category_index, thresh, box_to_dis
             display_str = str(class_name)
             display_str = '{}: {}%'.format(display_str, int(100 * scores[i]))
             box_to_display_str_map[box].append(display_str)
-            box_to_color_map[box] = STANDARD_COLORS[
-                classes[i] % len(STANDARD_COLORS)]
+            box_to_color_map[box] = STANDARD_COLORS[classes[i] % len(STANDARD_COLORS)]
         else:
             break  # 网络输出概率已经排序过，当遇到一个不满足后面的肯定不满足
 
@@ -78,7 +79,9 @@ def draw_text(draw, box_to_display_str_map, box, left, right, top, bottom, color
 
 
 def draw_box(image, boxes, classes, scores, category_index, thresh=0.5, line_thickness=8):
+    # [[xyxy]:'calss_name score']
     box_to_display_str_map = collections.defaultdict(list)
+    # [[xyxy]:'color']
     box_to_color_map = collections.defaultdict(str)
 
     filter_low_thresh(boxes, scores, classes, category_index, thresh, box_to_display_str_map, box_to_color_map)
@@ -88,6 +91,10 @@ def draw_box(image, boxes, classes, scores, category_index, thresh=0.5, line_thi
     im_width, im_height = image.size
     for box, color in box_to_color_map.items():
         xmin, ymin, xmax, ymax = box
+        xmin *= im_width
+        xmax *= im_width
+        ymin *= im_height
+        ymax *= im_height
         (left, right, top, bottom) = (xmin * 1, xmax * 1,
                                       ymin * 1, ymax * 1)
         draw.line([(left, top), (left, bottom), (right, bottom),
