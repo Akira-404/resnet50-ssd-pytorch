@@ -173,13 +173,12 @@ class VOCDataSet(Dataset):
         image_id = torch.tensor([idx])
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
-        target = {}
-        target["boxes"] = boxes
-        target["labels"] = labels
-        target["image_id"] = image_id
-        target["area"] = area
-        target["iscrowd"] = iscrowd
-        target["height_width"] = height_width
+        target = {"boxes": boxes,
+                  "labels": labels,
+                  "image_id": image_id,
+                  "area": area,
+                  "iscrowd": iscrowd,
+                  "height_width": height_width}
 
         return target
 

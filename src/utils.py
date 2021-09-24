@@ -79,6 +79,7 @@ def calc_iou_tensor(boxes1, boxes2):
     lt = torch.max(boxes1[:, None, :2], boxes2[:, :2])  # left-top [N,M,2]
     rb = torch.min(boxes1[:, None, 2:], boxes2[:, 2:])  # right-bottom [N,M,2]
 
+    # mini wh=0
     wh = (rb - lt).clamp(min=0)  # [N,M,2]
     inter = wh[:, :, 0] * wh[:, :, 1]  # [N,M]
 
@@ -104,6 +105,7 @@ class Encoder(object):
             criteria : IoU threshold of bboexes
             max_output : maximum number of output bboxes
     """
+
     def __init__(self, dboxes):
         self.dboxes = dboxes(order='ltrb')
         self.dboxes_xywh = dboxes(order='xywh').unsqueeze(dim=0)
@@ -173,8 +175,8 @@ class Encoder(object):
         scores_in = scores_in.permute(0, 2, 1)
         # print(bboxes_in.is_contiguous())
 
-        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]   # 预测的x, y回归参数
-        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]   # 预测的w, h回归参数
+        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]  # 预测的x, y回归参数
+        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]  # 预测的w, h回归参数
 
         # 将预测的回归参数叠加到default box上得到最终的预测边界框
         bboxes_in[:, :, :2] = bboxes_in[:, :, :2] * self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
@@ -312,9 +314,9 @@ class Encoder(object):
                 candidates.append(idx)
 
             # 保存该类别通过非极大值抑制后的目标信息
-            bboxes_out.append(bboxes[candidates, :])   # bbox坐标信息
-            scores_out.append(score[candidates])       # score信息
-            labels_out.extend([i] * len(candidates))   # 标签信息
+            bboxes_out.append(bboxes[candidates, :])  # bbox坐标信息
+            scores_out.append(score[candidates])  # score信息
+            labels_out.extend([i] * len(candidates))  # 标签信息
 
         if not bboxes_out:  # 如果为空的话，返回空tensor，注意boxes对应的空tensor size，防止验证时出错
             return [torch.empty(size=(0, 4)), torch.empty(size=(0,), dtype=torch.int64), torch.empty(size=(0,))]
@@ -331,7 +333,7 @@ class Encoder(object):
 
 class DefaultBoxes(object):
     def __init__(self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2):
-        self.fig_size = fig_size   # 输入网络的图像大小 300
+        self.fig_size = fig_size  # 输入网络的图像大小 300
         # [38, 19, 10, 5, 3, 1]
         self.feat_size = feat_size  # 每个预测层的feature map尺寸
 
@@ -341,12 +343,12 @@ class DefaultBoxes(object):
         # According to https://github.com/weiliu89/caffe
         # Calculation method slightly different from paper
         # [8, 16, 32, 64, 100, 300]
-        self.steps = steps    # 每个特征层上的一个cell在原图上的跨度
+        self.steps = steps  # 每个特征层上的一个cell在原图上的跨度
 
         # [21, 45, 99, 153, 207, 261, 315]
         self.scales = scales  # 每个特征层上预测的default box的scale
 
-        fk = fig_size / np.array(steps)     # 计算每层特征层的fk
+        fk = fig_size / np.array(steps)  # 计算每层特征层的fk
         # [[2], [2, 3], [2, 3], [2, 3], [2], [2]]
         self.aspect_ratios = aspect_ratios  # 每个预测特征层上预测的default box的ratios
 
@@ -381,10 +383,10 @@ class DefaultBoxes(object):
         # ltrb is left top coordinate and right bottom coordinate
         # 将(x, y, w, h)转换成(xmin, ymin, xmax, ymax)，方便后续计算IoU(匹配正负样本时)
         self.dboxes_ltrb = self.dboxes.clone()
-        self.dboxes_ltrb[:, 0] = self.dboxes[:, 0] - 0.5 * self.dboxes[:, 2]   # xmin
-        self.dboxes_ltrb[:, 1] = self.dboxes[:, 1] - 0.5 * self.dboxes[:, 3]   # ymin
-        self.dboxes_ltrb[:, 2] = self.dboxes[:, 0] + 0.5 * self.dboxes[:, 2]   # xmax
-        self.dboxes_ltrb[:, 3] = self.dboxes[:, 1] + 0.5 * self.dboxes[:, 3]   # ymax
+        self.dboxes_ltrb[:, 0] = self.dboxes[:, 0] - 0.5 * self.dboxes[:, 2]  # xmin
+        self.dboxes_ltrb[:, 1] = self.dboxes[:, 1] - 0.5 * self.dboxes[:, 3]  # ymin
+        self.dboxes_ltrb[:, 2] = self.dboxes[:, 0] + 0.5 * self.dboxes[:, 2]  # xmax
+        self.dboxes_ltrb[:, 3] = self.dboxes[:, 1] + 0.5 * self.dboxes[:, 3]  # ymax
 
     @property
     def scale_xy(self):
@@ -405,8 +407,8 @@ class DefaultBoxes(object):
 
 def dboxes300_coco():
     figsize = 300  # 输入网络的图像大小
-    feat_size = [38, 19, 10, 5, 3, 1]   # 每个预测层的feature map尺寸
-    steps = [8, 16, 32, 64, 100, 300]   # 每个特征层上的一个cell在原图上的跨度
+    feat_size = [38, 19, 10, 5, 3, 1]  # 每个预测层的feature map尺寸
+    steps = [8, 16, 32, 64, 100, 300]  # 每个特征层上的一个cell在原图上的跨度
     # use the scales here: https://github.com/amdegroot/ssd.pytorch/blob/master/data/config.py
     scales = [21, 45, 99, 153, 207, 261, 315]  # 每个特征层上预测的default box的scale
     aspect_ratios = [[2], [2, 3], [2, 3], [2, 3], [2], [2]]  # 每个预测特征层上预测的default box的ratios
@@ -518,8 +520,8 @@ class PostProcess(nn.Module):
         scores_in = scores_in.permute(0, 2, 1)
         # print(bboxes_in.is_contiguous())
 
-        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]   # 预测的x, y回归参数
-        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]   # 预测的w, h回归参数
+        bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]  # 预测的x, y回归参数
+        bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]  # 预测的w, h回归参数
 
         # 将预测的回归参数叠加到default box上得到最终的预测边界框
         bboxes_in[:, :, :2] = bboxes_in[:, :, :2] * self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]

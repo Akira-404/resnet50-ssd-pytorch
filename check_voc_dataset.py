@@ -149,9 +149,9 @@ if __name__ == '__main__':
     # voc_file = '/home/cv/AI_Data/HardHatWorker_voc/VOC2007'
     save_file = 'my_voc_classes.json'
 
-    classes_dict = create_voc_label_classes_json(voc_file, save_file)
+    # classes_dict = create_voc_label_classes_json(voc_file, save_file)
     # print(f'classes_dict:{classes_dict}')
     # check_voc_xml_image(voc_file)
 
     # check_image_mode(voc_file)
-    show_label_image(voc_file)
+    # show_label_image(voc_file)

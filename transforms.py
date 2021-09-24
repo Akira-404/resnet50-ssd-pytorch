@@ -9,6 +9,7 @@ from src.utils import dboxes300_coco, calc_iou_tensor, Encoder
 
 class Compose(object):
     """组合多个transform函数"""
+
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -20,6 +21,7 @@ class Compose(object):
 
 class ToTensor(object):
     """将PIL图像转为Tensor"""
+
     def __call__(self, image, target):
         image = F.to_tensor(image).contiguous()
         return image, target
@@ -27,6 +29,7 @@ class ToTensor(object):
 
 class RandomHorizontalFlip(object):
     """随机水平翻转图像以及bboxes,该方法应放在ToTensor后"""
+
     def __init__(self, prob=0.5):
         self.prob = prob
 
@@ -53,6 +56,7 @@ class SSDCropping(object):
     3. Random crop
     Reference to https://github.com/chauhan-utk/src.DomainAdaptation
     """
+
     def __init__(self):
         self.sample_options = (
             # Do nothing
@@ -87,7 +91,7 @@ class SSDCropping(object):
                 w = random.uniform(0.3, 1.0)
                 h = random.uniform(0.3, 1.0)
 
-                if w/h < 0.5 or w/h > 2:  # 保证宽高比例在0.5-2之间
+                if w / h < 0.5 or w / h > 2:  # 保证宽高比例在0.5-2之间
                     continue
 
                 # left 0 ~ wtot - w, top 0 ~ htot - h
@@ -100,6 +104,8 @@ class SSDCropping(object):
                 # boxes的坐标是在0-1之间的
                 bboxes = target["boxes"]
                 ious = calc_iou_tensor(bboxes, torch.tensor([[left, top, right, bottom]]))
+
+                # TODO need to redd
 
                 # tailor all the bboxes and return
                 # all(): Returns True if all elements in the tensor are True, False otherwise.
@@ -152,6 +158,7 @@ class SSDCropping(object):
 
 class Resize(object):
     """对图像进行resize处理,该方法应放在ToTensor前"""
+
     def __init__(self, size=(300, 300)):
         self.resize = t.Resize(size)
 
@@ -162,6 +169,7 @@ class Resize(object):
 
 class ColorJitter(object):
     """对图像颜色信息进行随机调整,该方法应放在ToTensor前"""
+
     def __init__(self, brightness=0.125, contrast=0.5, saturation=0.5, hue=0.05):
         self.trans = t.ColorJitter(brightness, contrast, saturation, hue)
 
@@ -172,6 +180,7 @@ class ColorJitter(object):
 
 class Normalization(object):
     """对图像标准化处理,该方法应放在ToTensor后"""
+
     def __init__(self, mean=None, std=None):
         if mean is None:
             mean = [0.485, 0.456, 0.406]
@@ -186,6 +195,7 @@ class Normalization(object):
 
 class AssignGTtoDefaultBox(object):
     """将DefaultBox与GT进行匹配"""
+
     def __init__(self):
         self.default_box = dboxes300_coco()
         self.encoder = Encoder(self.default_box)
