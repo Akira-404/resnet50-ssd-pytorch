@@ -104,3 +104,10 @@ class ResNet(nn.Module):
 
 def resnet50(num_classes=1000, include_top=True):
     return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, include_top=include_top)
+
+
+if __name__ == '__main__':
+    resnet=resnet50()
+    # print(resnet)
+    # print('-'*10)
+    print(list(resnet.children())[:2])

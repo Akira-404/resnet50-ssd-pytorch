@@ -13,9 +13,11 @@ class SmoothedValue(object):
     """Track a series of values and provide access to smoothed values over a
     window or the global series average.
     """
+
     def __init__(self, window_size=20, fmt=None):
         if fmt is None:
             fmt = "{value:.4f} ({global_avg:.4f})"
+        # deque: Double-Ended Queue 双端队列
         self.deque = deque(maxlen=window_size)  # deque简单理解成加强版list
         self.total = 0.0
         self.count = 0
@@ -232,7 +234,6 @@ class MetricLogger(object):
 
 
 def warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
-
     def f(x):
         """根据step数返回一个学习率倍率因子"""
         if x >= warmup_iters:  # 当迭代数大于给定的warmup_iters时，倍率因子为1
