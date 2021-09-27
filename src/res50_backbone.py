@@ -107,7 +107,11 @@ def resnet50(num_classes=1000, include_top=True):
 
 
 if __name__ == '__main__':
-    resnet=resnet50()
-    # print(resnet)
-    # print('-'*10)
-    print(list(resnet.children())[:2])
+    resnet = resnet50()
+    print(resnet)
+    with open('resnet.txt','w') as f:
+        f.write(str(resnet))
+
+    print(list(resnet.children())[:7])
+    with open('resnet-1-6.txt','w') as f:
+        f.write(str(list(resnet.children())[:7]))

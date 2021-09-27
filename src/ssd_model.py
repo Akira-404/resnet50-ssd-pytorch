@@ -2,8 +2,8 @@ import torch
 from torch import nn, Tensor
 from torch.jit.annotations import List
 
-from .res50_backbone import resnet50
-from .utils import dboxes300_coco, Encoder, PostProcess
+from res50_backbone import resnet50
+from utils import dboxes300_coco, Encoder, PostProcess
 
 
 class Backbone(nn.Module):
@@ -145,6 +145,7 @@ class Loss(nn.Module):
         2. Localization Loss: Only on positive labels
         Suppose input dboxes has the shape 8732x4
     """
+
     def __init__(self, dboxes):
         super(Loss, self).__init__()
         # Two factor are from following links
@@ -221,3 +222,11 @@ class Loss(nn.Module):
         pos_num = pos_num.float().clamp(min=1e-6)  # 防止出现分母为零的情况
         ret = (total_loss * num_mask / pos_num).mean(dim=0)  # 只计算存在正样本的图像损失
         return ret
+
+
+if __name__ == '__main__':
+    backbone = Backbone()
+    model = SSD300(backbone=backbone, num_classes=2)
+    print(model)
+    with open('ssd.txt', 'w') as f:
+        f.write(str(model))

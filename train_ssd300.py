@@ -12,7 +12,7 @@ from train_utils.coco_utils import get_coco_api_from_dataset
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 
-def create_model(num_classes=21):
+def create_model(num_classes=2):
     # https://download.pytorch.org/models/resnet50-19c8e357.pth
     # pre_train_path = "./src/resnet50.pth"
     backbone = Backbone()
