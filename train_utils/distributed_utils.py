@@ -321,3 +321,20 @@ def init_distributed_mode(args):
                                          world_size=args.world_size, rank=args.rank)
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
+
+
+class ObjectDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(ObjectDict, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, name):
+        value = self[name]
+        if isinstance(value, dict):
+            value = ObjectDict(value)
+        return value
+
+
+if __name__ == '__main__':
+    od = ObjectDict(asf={'a': 1}, d=True)
+    print(od.asf,od.asf.a)
+    print(od.d)
